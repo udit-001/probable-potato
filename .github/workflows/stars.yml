@@ -54,11 +54,19 @@ jobs:
         printf "%s\n" "${USERNAMES[@]}" | jq -R . | jq -s . > "$OUTPUT_FILE"
         echo "Saved $(wc -l < "$OUTPUT_FILE") usernames to $OUTPUT_FILE"
 
+    - name: Update README with sync time
+      run: |
+        SYNC_TIME=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+        echo "Updating README with sync time..."
+
+        sed -i "s/## Workflow Log/## Workflow Log\n\nThe stargazer list was last updated on $SYNC_TIME./" README.md
+
     - name: Commit and push stars.json
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-        git add data/stars.json
+        git add data/stars.json README.md
         git commit -m "Update stargazers list"
         git push
