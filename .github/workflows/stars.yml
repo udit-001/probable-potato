@@ -1,0 +1,62 @@
+name: Fetch Stargazers (no token)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_url:
+        description: 'GitHub repository URL (e.g. https://github.com/torvalds/linux)'
+        required: true
+        default: 'https://github.com/torvalds/linux'
+
+permissions:
+  contents: write  # Needed to commit changes
+
+jobs:
+  fetch-stargazers:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Fetch stargazers without auth
+      run: |
+        mkdir -p data
+        OUTPUT_FILE="data/stars.json"
+
+        REPO_URL="${{ github.event.inputs.repo_url }}"
+        # Extract owner/repo from the URL
+        REPO=$(echo "$REPO_URL" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
+
+        USERNAMES=()
+        PAGE=1
+
+        echo "Fetching stargazers for $REPO..."
+
+        while : ; do
+          RESPONSE=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+                           "https://api.github.com/repos/$REPO/stargazers?per_page=100&page=$PAGE")
+
+          COUNT=$(echo "$RESPONSE" | jq 'length')
+
+          if [ "$COUNT" -eq 0 ]; then
+            break
+          fi
+
+          PAGE_USERNAMES=$(echo "$RESPONSE" | jq -r '.[].login')
+          USERNAMES+=($PAGE_USERNAMES)
+
+          ((PAGE++))
+        done
+
+        printf "%s\n" "${USERNAMES[@]}" | jq -R . | jq -s . > "$OUTPUT_FILE"
+        echo "Saved $(wc -l < "$OUTPUT_FILE") usernames to $OUTPUT_FILE"
+
+    - name: Commit and push stars.json
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+
+        git add data/stars.json
+        git commit -m "Update stargazers list"
+        git push
