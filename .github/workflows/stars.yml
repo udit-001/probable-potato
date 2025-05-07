@@ -26,7 +26,7 @@ jobs:
         mkdir -p data
         OUTPUT_FILE="data/stars.json"
 
-        REPO_URL="${{ secrets.REPO_URL }}"
+        REPO_URL="${{ vars.REPO_URL }}"
         # Extract owner/repo from the URL
         REPO=$(echo "$REPO_URL" | sed -E 's#https://github.com/([^/]+/[^/]+).*#\1#')
 
