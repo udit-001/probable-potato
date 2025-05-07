@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '0 0 * * 3'
   workflow_dispatch:
-    inputs:
-      repo_url:
-        description: 'GitHub repository URL (e.g. https://github.com/torvalds/linux)'
-        required: true
-        default: 'https://github.com/torvalds/linux'
 
 permissions:
   contents: write  # Needed to commit changes
