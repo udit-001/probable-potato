@@ -55,7 +55,7 @@ jobs:
 
         echo "Updating README with sync time..."
 
-        sed -i "s/## Workflow Log/## Workflow Log\n\nThe stargazer list was last updated on $SYNC_TIME./" README.md
+        echo "## Workflow Log\n\nThe stargazer list was last updated on $SYNC_TIME." > README.md
 
     - name: Commit and push stars.json
       run: |
